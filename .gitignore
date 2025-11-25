@@ -1,0 +1,8 @@
+submissions
+tmp
+.env
+db.json
+secrets
+models/*
+__pycache__
+*.db

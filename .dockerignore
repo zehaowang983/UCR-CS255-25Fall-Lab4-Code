@@ -1,0 +1,6 @@
+Dockerfile
+submissions
+tmp
+.env
+./*.json
+__pycache__

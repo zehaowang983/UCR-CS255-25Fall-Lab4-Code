@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UCR-CS255-25Fall-Lab4</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        h2, h3 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            display: block;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #e9ecef;
+        }
+
+        .table-container {
+            position: relative;
+            max-height: 400px; /* 设置滚动区域的最大高度 */
+            overflow-y: auto; /* 启用纵向滚动 */
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        /* 表头固定 */
+        table thead {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa; /* 表头背景色 */
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse; /* 合并单元格的边框，避免双线 */
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border-right: 1px solid #ddd; /* 添加列之间的分割线 */
+        }
+
+        /* 最后一列去掉右边框 */
+        table th:last-child, table td:last-child {
+            border-right: none;
+        }
+
+        table th {
+            background-color: #f0f0f0; /* 表头颜色 */
+            font-weight: bold;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f9f9f9; /* 隔行变色 */
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1; /* 鼠标悬停效果 */
+        }
+
+        
+        .copy-btn {
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
+        .copy-btn:hover {
+            color: #0056b3;
+        }
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+        }
+        .login-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .login-btn:hover {
+            background-color: #0056b3;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .log-container {
+            /* width: 80%; */
+            max-height: 300px;
+            /* margin: 20px auto; */
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .log-entries {
+            max-height: 240px;
+            overflow-y: auto;
+            padding: 5px;
+            margin-bottom: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .log-entry {
+            padding: 5px;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .log-info {
+            color: #007bff; /* 信息日志为蓝色 */
+        }
+
+        .log-success {
+            color: #28a745; /* 成功日志为绿色 */
+        }
+
+        .log-error {
+            color: #dc3545; /* 错误日志为红色 */
+        }
+
+        .clear-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .clear-button:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="user-info-container">
+            <!-- User info will be displayed here -->
+        </div>
+
+        <h2>CS255-2025-Fall - Lab 4 Adversarial Learning </h2>
+        <form id="uploadForm" enctype="multipart/form-data" action="/submit" method="post">
+            <label for="alg">Choose an algorithm</label>
+            <select id="alg" name="alg" required>
+                <option value="fgsm">FGSM</option>
+                <option value="pgd">PGD</option>
+            </select>
+            <br><br>
+            <label for="file">Choose your adversarial samples</label>
+            <input type="file" id="file" name="file" required>
+            <button type="submit">Upload</button>
+            <div id="loading" style="display: none;">
+                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                    <div style="border: 16px solid #f3f3f3; border-radius: 50%; border-top: 16px solid #007bff; width: 120px; height: 120px; animation: spin 2s linear infinite;"></div>
+                </div>
+            </div>
+        </form>
+
+        <!-- <div id="logContainer" class="response"></div>
+        <div id="response" class="response" style="display: none;"></div> -->
+        <div id="logContainer" class="log-container">
+            <h3>Logs</h3>
+            <div id="logEntries" class="log-entries"></div>
+            <button onclick="clearLogs()" class="clear-button">Clear Logs</button>
+        </div>        
+
+        <div style="display: flex; align-items: center;">
+            <h3 style="margin-right: 10px;">Submission Results</h3>
+            <label onclick="fetchSubmissions()" style="cursor: pointer; color: blue; text-decoration: underline; margin-top: 8px;">
+                Refresh
+            </label>
+        </div>
+        <div class="table-container" style="position: relative;">
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Algorithm</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th>Timestamp</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Results will be displayed here -->
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        // 获取表单元素
+        const form = document.getElementById('uploadForm');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            addLog('Check user login status');
+            const userResponse = await fetch('/user');
+            const user = await userResponse.json();
+
+            if (!user) {
+                addLog('Error: Please login first.', 'error');
+                fetchUserInfo();
+                return;
+            }
+
+            const formData = new FormData(form);
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+
+            addLog('Check file size');
+            if (file.size > 3 * 1024 * 1024) { // 3MB in bytes
+                addLog('Error: File size exceeds 3MB.', 'error');
+                return;
+            }
+
+            addLog('Submitting...');
+            const response = await fetch('/submit', {
+                method: 'POST',
+                body: formData,
+                redirect: 'follow'
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                addLog(`Submission successful. ID: ${result.submission_id}`, 'success');
+                fetchSubmissions();
+                fetchUserInfo();
+            } else if (response.status === 413) {
+                addLog(`Error: File size exceeds 3MB`, 'error');
+            } else {
+                const data = await response.json();
+                addLog(`Error: Submission failed. ${response.status} ${data.detail}`, 'error');
+            }
+
+        });
+
+        // 复制到剪贴板功能
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard: ' + text);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        // 格式化时间戳
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString(undefined, {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // 更新时间戳
+        const timestampElements = document.querySelectorAll('.timestamp');
+        timestampElements.forEach(element => {
+            element.textContent = formatTimestamp(element.textContent);
+        });
+
+        async function showDetails(submission_id) {
+            // 默认值为 "N/A"
+            let tp1_diff = "N/A";
+            let tp5_diff = "N/A";
+            let eps = "N/A";
+            let tp1_raw_score = "N/A";
+            let tp5_raw_score = "N/A";
+            let timestamp = "N/A";
+            let comment = "N/A";
+
+            try {
+                // 发送请求获取 submission 数据
+                const response = await fetch(`/submission/${submission_id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    tp1_diff = data.tp1_diff !== null ? parseFloat(data.tp1_diff).toFixed(2) : "N/A";
+                    tp5_diff = data.tp5_diff !== null ? parseFloat(data.tp5_diff).toFixed(2) : "N/A";
+                    eps = data.eps !== null ? parseFloat(data.eps).toFixed(2) : "N/A";
+                    tp1_raw_score = data.tp1_raw_score !== null ? parseFloat(data.tp1_raw_score).toFixed(2) : "N/A";
+                    tp5_raw_score = data.tp5_raw_score !== null ? parseFloat(data.tp5_raw_score).toFixed(2) : "N/A";
+                    timestamp = formatTimestamp(data.finish_timestamp) || "N/A";
+                    comment = data.comment || "N/A";
+                } else {
+                    addLog(`Failed to fetch submission details: ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Error fetching submission details: ${error.message}`, 'error');
+            }
+
+            // 显示详情信息
+            const details = `
+                <div style="max-width: 400px; height: auto; margin: 50px auto; padding: 20px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); border: 1px solid #e0e0e0; font-family: 'Arial', sans-serif;">
+                    <h3 style="text-align: center; color: #2c3e50; font-size: 24px; margin-bottom: 20px; font-weight: bold;">Submission Details</h3>
+                    <div style="padding: 20px; border-radius: 8px; background-color: #f9f9f9; overflow-y: auto; font-size: 16px; color: #555; line-height: 1.5;">
+                        <p><strong style="color: #34495e;">TP1 Difference:</strong> <span style="color: #2980b9;">${tp1_diff}</span></p>
+                        <p><strong style="color: #34495e;">TP5 Difference:</strong> <span style="color: #2980b9;">${tp5_diff}</span></p>
+                        <p><strong style="color: #34495e;">EPS:</strong> <span style="color: #2980b9;">${eps}</span></p>
+                        <p><strong style="color: #34495e;">TP1 Raw Score:</strong> <span style="color: #2980b9;">${tp1_raw_score}</span></p>
+                        <p><strong style="color: #34495e;">TP5 Raw Score:</strong> <span style="color: #2980b9;">${tp5_raw_score}</span></p>
+                        <p><strong style="color: #34495e;">Finished Timestamp:</strong> <span style="color: #2980b9;">${timestamp}</span></p>
+                        
+                        <div style="margin-top: 20px;">
+                            <strong style="color: #34495e;">Comment:</strong>
+                            <div style="max-height: 200px; overflow-y: auto; background-color: #ffffff; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-style: italic; color: #555;">
+                                ${comment}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="closeDetails()" 
+                            style="margin-top: 25px; padding: 12px 24px; background-color: #3498db; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; display: block; width: 140px; margin-left: auto; margin-right: auto; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); transition: background-color 0.3s;">
+                        Close
+                    </button>
+                </div>
+
+                <style>
+                    button:hover {
+                        background-color: #2980b9;
+                    }
+                </style>
+
+            `;
+            const detailsDiv = document.createElement("div");
+            detailsDiv.id = "detailsDiv";
+            detailsDiv.style.position = "fixed";
+            detailsDiv.style.top = "50%";
+            detailsDiv.style.left = "50%";
+            detailsDiv.style.transform = "translate(-50%, -50%)";
+            detailsDiv.style.zIndex = "1000";
+            detailsDiv.innerHTML = details;
+            document.body.appendChild(detailsDiv);
+        }
+
+
+        function closeDetails() {
+            const detailsDiv = document.getElementById('detailsDiv');
+            if (detailsDiv) {
+            document.body.removeChild(detailsDiv);
+            }
+        }
+
+        async function fetchSubmissions() {
+            const response = await fetch('/submissions');
+            const submissions = await response.json();
+            if (submissions == null) return ;
+            const tbody = document.querySelector('#resultsTable tbody');
+            tbody.innerHTML = '';
+
+            submissions.forEach(submission => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="copy-btn" onclick="copyToClipboard('${submission.id}')">Copy</td>
+                    <td>${submission.alg}</td>
+                    <td>${submission.status}</td>
+                    <td>${submission.score !== null ? parseFloat(submission.score).toFixed(2) : 'N/A'}</td>
+                    <td class="timestamp">${formatTimestamp(submission.timestamp)}</td>
+                    <td>
+                        <button onclick="showDetails('${submission.id}')">Details</button>
+                    </td>
+                `;
+               tbody.appendChild(row);
+            });
+
+            fetchUserInfo();
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchSubmissions);
+
+        async function fetchUserInfo() {
+            try {
+                const response = await fetch('/user');
+                const user = await response.json();
+                const userInfoContainer = document.getElementById('user-info-container');
+                if (user == null) {
+                    userInfoContainer.innerHTML = `
+                    <button class="login-btn" onclick="window.location.href='/auth'">Login</button>
+                `;
+                } else {
+                    userInfoContainer.style.lineHeight = '0.8';
+                    userInfoContainer.style.maxHeight = '150px';
+                    // userInfoContainer.style.overflowY = 'auto';
+                    userInfoContainer.innerHTML = `
+                        <div class="user-info">
+                            <p>Email: ${user.email}</p>
+                            <p>Name: ${user.name}</p>
+                            <div class="submission-info">
+                                <p><strong>FGSM Submissions Left:</strong> ${user.fgsm_submissions_left}</p>
+                                <p><strong>PGD Submissions Left:</strong> ${user.pgd_submissions_left}</p>
+                                <p><strong>Total Grade:</strong> ${user.total_grade.toFixed(2)}</p>
+                                <p><strong>Submit DDL:</strong> ${formatTimestamp(user.submit_ddl)}</p>
+                            </div>
+                            <!-- Logout Button -->
+                            <button onclick="logout()" style="margin-top: 0px; padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Logout
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchUserInfo);
+
+        function addLog(message, type = "info") {
+            const logEntries = document.getElementById("logEntries");
+
+            // Create a new log entry
+            const logEntry = document.createElement("div");
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+            // Append the log entry
+            logEntries.appendChild(logEntry);
+
+            // Scroll to the bottom to show the latest log
+            logEntries.scrollTop = logEntries.scrollHeight;
+        }
+
+        function clearLogs() {
+            const logEntries = document.getElementById("logEntries");
+            logEntries.innerHTML = ""; // Clear all log entries
+        }
+
+        function logout() {
+            // Redirect to the logout endpoint
+            window.location.href = '/auth/logout';
+        }
+        addLog('Welcome to CS255-2025-Fall Lab 4 Adversarial Learning!');
+        addLog('Author: Zehao Wang');
+        addLog('Contact me via email if you have any questions.');
+
+    </script>
+</body>
+</html>
